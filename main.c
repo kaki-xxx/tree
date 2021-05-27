@@ -31,6 +31,10 @@ int main(int argc, char *argv[]) {
         }
         size_t len = strlen(dirp->d_name);
         char *file_name = malloc((len + 1) * sizeof(char));
+        if (file_name == NULL) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
         strcpy(file_name, dirp->d_name);
         file_names[n] = file_name;
         n++;
