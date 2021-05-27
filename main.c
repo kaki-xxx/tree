@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <dirent.h>
 #include <errno.h>
+
+int compar(const void *a, const void *b) {
+    return strcmp(*(const char**)a, *(const char**)b);
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -15,9 +20,21 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    struct dirent* dirp;
+    #define MAX_FILES 1024
+    char *file_names[MAX_FILES];
+
+    struct dirent *dirp;
+    int n = 0;
     while (errno = 0, (dirp = readdir(dp)) != NULL) {
-        printf("%s\n", dirp->d_name);
+        size_t len = strlen(dirp->d_name);
+        char *file_name = malloc((len + 1) * sizeof(char));
+        strcpy(file_name, dirp->d_name);
+        file_names[n] = file_name;
+        n++;
+    }
+    qsort(file_names, n, sizeof(char*), compar);
+    for (int i = 0; i < n; i++) {
+        printf("%s\n", file_names[i]);
     }
     if (errno != 0) {
         perror(argv[1]);
