@@ -26,6 +26,9 @@ int main(int argc, char *argv[]) {
     struct dirent *dirp;
     int n = 0;
     while (errno = 0, (dirp = readdir(dp)) != NULL) {
+        if (dirp->d_name[0] == '.') {
+            continue;
+        }
         size_t len = strlen(dirp->d_name);
         char *file_name = malloc((len + 1) * sizeof(char));
         strcpy(file_name, dirp->d_name);
