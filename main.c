@@ -35,13 +35,13 @@ int main(int argc, char *argv[]) {
         file_names[n] = file_name;
         n++;
     }
-    qsort(file_names, n, sizeof(char*), compar);
-    for (int i = 0; i < n; i++) {
-        printf("%s\n", file_names[i]);
-    }
     if (errno != 0) {
         perror(argv[1]);
         exit(EXIT_FAILURE);
+    }
+    qsort(file_names, n, sizeof(char*), compar);
+    for (int i = 0; i < n; i++) {
+        printf("%s\n", file_names[i]);
     }
 
     if (closedir(dp) < 0) {
