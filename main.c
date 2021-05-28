@@ -20,7 +20,7 @@ void show_usage(const char *progname) {
     printf("     --version  output version infomation and exit\n");
 }
 
-void show_version() {
+void show_version(void) {
     printf("tree %d.%d\n", TREE_VERSION_MAJOR, TREE_VERSION_MINOR);
 }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (version) {
-        show_version(argv[0]);
+        show_version();
         exit(EXIT_SUCCESS);
     }
 
