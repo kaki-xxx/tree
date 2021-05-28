@@ -14,6 +14,8 @@ int do_tree(char *dirpath) {
         return -1;
     }
 
+    printf("%s\n", dirpath);
+
     #define MAX_FILES 1024
     char *file_names[MAX_FILES];
 
@@ -37,9 +39,10 @@ int do_tree(char *dirpath) {
         return -1;
     }
     qsort(file_names, n, sizeof(char*), compar);
-    for (int i = 0; i < n; i++) {
-        printf("%s\n", file_names[i]);
+    for (int i = 0; i < n - 1; i++) {
+        printf("├── %s\n", file_names[i]);
     }
+    printf("└── %s\n", file_names[n - 1]);
 
     if (closedir(dp) < 0) {
         return -1;
