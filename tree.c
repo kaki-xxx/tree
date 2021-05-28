@@ -10,14 +10,6 @@ static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int isdir(const char *pathname) {
-    struct stat buf;
-    if (lstat(pathname, &buf) < 0) {
-        return -1;
-    }
-    return S_ISDIR(buf.st_mode);
-}
-
 static int listdir(DIR *dp, char *pathnames[], int *n) {
     struct dirent *dirp;
     *n = 0;
@@ -41,6 +33,14 @@ static int listdir(DIR *dp, char *pathnames[], int *n) {
     qsort(pathnames, *n, sizeof(char*), compar);
 
     return 0;
+}
+
+static int isdir(const char *pathname) {
+    struct stat buf;
+    if (lstat(pathname, &buf) < 0) {
+        return -1;
+    }
+    return S_ISDIR(buf.st_mode);
 }
 
 static int do_tree_internal(char *dirpath, int depth) {
