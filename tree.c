@@ -11,7 +11,15 @@ static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int listdir(DIR *dp, char *pathnames[], int *n, int all) {
+static int isdir(const char *pathname) {
+    struct stat buf;
+    if (lstat(pathname, &buf) < 0) {
+        return -1;
+    }
+    return S_ISDIR(buf.st_mode);
+}
+
+static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_only) {
     struct dirent *dirp;
     *n = 0;
     while (errno = 0, (dirp = readdir(dp)) != NULL) {
@@ -19,6 +27,9 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all) {
             continue;
         }
         if (!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, "..")) {
+            continue;
+        }
+        if (directory_only && !isdir(dirp->d_name)) {
             continue;
         }
         size_t len = strlen(dirp->d_name);
@@ -39,14 +50,6 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all) {
     return 0;
 }
 
-static int isdir(const char *pathname) {
-    struct stat buf;
-    if (lstat(pathname, &buf) < 0) {
-        return -1;
-    }
-    return S_ISDIR(buf.st_mode);
-}
-
 extern struct flags flags;
 
 static int do_tree_internal(char *dirpath, int depth) {
@@ -63,7 +66,7 @@ static int do_tree_internal(char *dirpath, int depth) {
     char *file_names[MAX_FILES];
 
     int n = MAX_FILES;
-    listdir(dp, file_names, &n, flags.all);
+    listdir(dp, file_names, &n, flags.all, flags.directory_only);
 
     for (int i = 0; i < n - 1; i++) {
         int d = depth;

@@ -14,6 +14,7 @@ void show_usage(const char *progname) {
     printf("list contents of directories in a tree-like format\n");
     printf("\n");
     printf(" -a, --all      do not ignore entries starting with .\n");
+    printf(" -d             list directories only\n");
     printf("     --help     print this message and exit\n");
     printf("     --version  output version infomation and exit\n");
 }
@@ -32,10 +33,13 @@ int main(int argc, char *argv[]) {
     char opt;
     int longindex;
     opterr = 1;
-    while ((opt = getopt_long(argc, argv, "a", longopts, &longindex)) != -1) {
+    while ((opt = getopt_long(argc, argv, "ad", longopts, &longindex)) != -1) {
         switch (opt) {
             case 'a':
                 flags.all = 1;
+                break;
+            case 'd':
+                flags.directory_only = 1;
                 break;
             case 0:
                 continue;
