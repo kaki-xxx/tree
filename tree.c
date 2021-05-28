@@ -18,6 +18,31 @@ static int isdir(const char *pathname) {
     return S_ISDIR(buf.st_mode);
 }
 
+static int listdir(DIR *dp, char *pathnames[], int *n) {
+    struct dirent *dirp;
+    *n = 0;
+    while (errno = 0, (dirp = readdir(dp)) != NULL) {
+        if (dirp->d_name[0] == '.') {
+            continue;
+        }
+        size_t len = strlen(dirp->d_name);
+        char *file_name = malloc((len + 1) * sizeof(char));
+        if (file_name == NULL) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        strcpy(file_name, dirp->d_name);
+        pathnames[*n] = file_name;
+        (*n)++;
+    }
+    if (errno != 0) {
+        return -1;
+    }
+    qsort(pathnames, *n, sizeof(char*), compar);
+
+    return 0;
+}
+
 static int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
@@ -31,26 +56,9 @@ static int do_tree_internal(char *dirpath, int depth) {
     #define MAX_FILES 1024
     char *file_names[MAX_FILES];
 
-    struct dirent *dirp;
-    int n = 0;
-    while (errno = 0, (dirp = readdir(dp)) != NULL) {
-        if (dirp->d_name[0] == '.') {
-            continue;
-        }
-        size_t len = strlen(dirp->d_name);
-        char *file_name = malloc((len + 1) * sizeof(char));
-        if (file_name == NULL) {
-            perror("malloc");
-            exit(EXIT_FAILURE);
-        }
-        strcpy(file_name, dirp->d_name);
-        file_names[n] = file_name;
-        n++;
-    }
-    if (errno != 0) {
-        return -1;
-    }
-    qsort(file_names, n, sizeof(char*), compar);
+    int n = MAX_FILES;
+    listdir(dp, file_names, &n);
+
     for (int i = 0; i < n - 1; i++) {
         int d = depth;
         while (d--) printf("│   ");
