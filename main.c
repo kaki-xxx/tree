@@ -5,14 +5,15 @@
 #include <stdbool.h>
 #include "tree.h"
 #include "config.h"
+#include "flags.h"
 
-int help = 0;
-int version = 0;
+struct flags flags;
 
 void show_usage(const char *progname) {
     printf("Usage: %s [OPTION]... DIR\n", progname);
     printf("list contents of directories in a tree-like format\n");
     printf("\n");
+    printf(" -a, --all      do not ignore entries starting with .\n");
     printf("     --help     print this message and exit\n");
     printf("     --version  output version infomation and exit\n");
 }
@@ -23,31 +24,38 @@ void show_version(void) {
 
 int main(int argc, char *argv[]) {
     struct option longopts[] = {
-        { "help",    no_argument, &help,    1 },
-        { "version", no_argument, &version, 1 },
+        { "all",     no_argument, NULL,           'a' },
+        { "help",    no_argument, &flags.help,    1 },
+        { "version", no_argument, &flags.version, 1 },
     };
-
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s dir\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
 
     char opt;
     int longindex;
-    while ((opt = getopt_long(argc, argv, "", longopts, &longindex)) != -1) {}
+    opterr = 1;
+    while ((opt = getopt_long(argc, argv, "a", longopts, &longindex)) != -1) {
+        switch (opt) {
+            case 'a':
+                flags.all = 1;
+                break;
+            case 0:
+                continue;
+            default:
+                exit(EXIT_FAILURE);
+        }
+    }
 
-    if (help) {
+    if (flags.help) {
         show_usage(argv[0]);
         exit(EXIT_SUCCESS);
     }
 
-    if (version) {
+    if (flags.version) {
         show_version();
         exit(EXIT_SUCCESS);
     }
 
-    if (do_tree(argv[1]) < 0) {
-        perror(argv[1]);
+    if (do_tree(argv[optind]) < 0) {
+        perror(argv[optind]);
         exit(EXIT_FAILURE);
     }
 

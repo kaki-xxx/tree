@@ -5,16 +5,20 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "flags.h"
 
 static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int listdir(DIR *dp, char *pathnames[], int *n) {
+static int listdir(DIR *dp, char *pathnames[], int *n, int all) {
     struct dirent *dirp;
     *n = 0;
     while (errno = 0, (dirp = readdir(dp)) != NULL) {
-        if (dirp->d_name[0] == '.') {
+        if (!all && dirp->d_name[0] == '.') {
+            continue;
+        }
+        if (!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, "..")) {
             continue;
         }
         size_t len = strlen(dirp->d_name);
@@ -43,6 +47,8 @@ static int isdir(const char *pathname) {
     return S_ISDIR(buf.st_mode);
 }
 
+extern struct flags flags;
+
 static int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
@@ -57,7 +63,7 @@ static int do_tree_internal(char *dirpath, int depth) {
     char *file_names[MAX_FILES];
 
     int n = MAX_FILES;
-    listdir(dp, file_names, &n);
+    listdir(dp, file_names, &n, flags.all);
 
     for (int i = 0; i < n - 1; i++) {
         int d = depth;
