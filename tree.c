@@ -12,7 +12,9 @@ static int compar(const void *a, const void *b) {
 
 int isdir(const char *pathname) {
     struct stat buf;
-    lstat(pathname, &buf);
+    if (lstat(pathname, &buf) < 0) {
+        return -1;
+    }
     return S_ISDIR(buf.st_mode);
 }
 
@@ -52,7 +54,10 @@ int do_tree_internal(char *dirpath, int depth) {
     for (int i = 0; i < n - 1; i++) {
         int d = depth;
         while (d--) printf("│   ");
-        if (isdir(file_names[i])) {
+        int dir;
+        if ((dir = isdir(file_names[i])) < 0) {
+            return -1;
+        } else if (dir) {
             printf("├── ");
             do_tree_internal(file_names[i], depth + 1);
         } else {
