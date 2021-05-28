@@ -53,7 +53,7 @@ static int do_tree_internal(char *dirpath, int depth) {
     qsort(file_names, n, sizeof(char*), compar);
     for (int i = 0; i < n - 1; i++) {
         int d = depth;
-        while (--d) printf("│   ");
+        while (d--) printf("│   ");
         int dir;
         if ((dir = isdir(file_names[i])) < 0) {
             return -1;
@@ -65,7 +65,7 @@ static int do_tree_internal(char *dirpath, int depth) {
         }
     }
     int d = depth;
-    while (--d) printf("│   ");
+    while (d--) printf("│   ");
     printf("└── %s\n", file_names[n - 1]);
 
     if (closedir(dp) < 0) {
