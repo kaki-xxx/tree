@@ -3,16 +3,26 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-int do_tree(char *dirpath) {
+int isdir(const char *pathname) {
+    struct stat buf;
+    lstat(pathname, &buf);
+    return S_ISDIR(buf.st_mode);
+}
+
+int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
         return -1;
     }
+
+    chdir(dirpath);
 
     printf("%s\n", dirpath);
 
@@ -40,13 +50,27 @@ int do_tree(char *dirpath) {
     }
     qsort(file_names, n, sizeof(char*), compar);
     for (int i = 0; i < n - 1; i++) {
-        printf("├── %s\n", file_names[i]);
+        int d = depth;
+        while (d--) printf("│   ");
+        if (isdir(file_names[i])) {
+            printf("├── ");
+            do_tree_internal(file_names[i], depth + 1);
+        } else {
+            printf("├── %s\n", file_names[i]);
+        }
     }
+    int d = depth;
+    while (d--) printf("│   ");
     printf("└── %s\n", file_names[n - 1]);
 
     if (closedir(dp) < 0) {
         return -1;
     }
 
+    chdir("..");
     return 0;
+}
+
+int do_tree(char *dirpath) {
+    return do_tree_internal(dirpath, 0);
 }
