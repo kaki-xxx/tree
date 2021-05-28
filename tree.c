@@ -81,9 +81,11 @@ static int do_tree_internal(char *dirpath, int depth) {
             printf("├── %s\n", file_names[i]);
         }
     }
-    int d = depth;
-    while (d--) printf("│   ");
-    printf("└── %s\n", file_names[n - 1]);
+    if (n != 0) {
+        int d = depth;
+        while (d--) printf("│   ");
+        printf("└── %s\n", file_names[n - 1]);
+    }
 
     if (closedir(dp) < 0) {
         return -1;
