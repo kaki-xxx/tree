@@ -10,7 +10,7 @@ static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-int isdir(const char *pathname) {
+static int isdir(const char *pathname) {
     struct stat buf;
     if (lstat(pathname, &buf) < 0) {
         return -1;
@@ -18,7 +18,7 @@ int isdir(const char *pathname) {
     return S_ISDIR(buf.st_mode);
 }
 
-int do_tree_internal(char *dirpath, int depth) {
+static int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
         return -1;
