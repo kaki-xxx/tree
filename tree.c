@@ -51,8 +51,6 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_on
     return 0;
 }
 
-extern struct flags flags;
-
 #define MAX_FILES 1024
 
 /*

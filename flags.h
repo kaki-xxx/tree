@@ -8,4 +8,6 @@ struct flags {
     int directory_only;
 };
 
+extern struct flags flags;
+
 #endif
