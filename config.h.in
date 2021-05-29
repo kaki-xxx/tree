@@ -1,2 +1,7 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
 #define TREE_VERSION_MAJOR @tree_VERSION_MAJOR@
 #define TREE_VERSION_MINOR @tree_VERSION_MINOR@
+
+#endif /* CONFIG_H */
