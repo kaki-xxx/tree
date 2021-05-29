@@ -55,7 +55,13 @@ extern struct flags flags;
 
 #define MAX_FILES 1024
 
-static bool islast[MAX_FILES];
+/*
+単純に左に横棒を入れてしまい
+└── CompilerIdCXX
+│   └── tmp
+みたいになってしまうのを防ぐための変数
+*/
+static bool displine[MAX_FILES];
 
 static int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
@@ -71,26 +77,26 @@ static int do_tree_internal(char *dirpath, int depth) {
     int n = MAX_FILES;
     listdir(dp, file_names, &n, flags.all, flags.directory_only);
 
-    char *box = "├";
+    char *line = "├";
     for (int i = 0; i < n; i++) {
-        islast[depth + 1] = false;
+        displine[depth + 1] = true;
         if (i == n - 1) {
-            box = "└";
-            islast[depth + 1] = true;
+            line = "└";
+            displine[depth + 1] = false;
         }
         int d = 0;
         while (d++ < depth) {
-            if (islast[d]) printf("    ");
-            else printf("│   ");
+            if (displine[d]) printf("│   ");
+            else printf("    ");
         } 
         int dir;
         if ((dir = isdir(file_names[i])) < 0) {
             return -1;
         } else if (dir) {
-            printf("%s── ", box);
+            printf("%s── ", line);
             do_tree_internal(file_names[i], depth + 1);
         } else {
-            printf("%s── %s\n", box, file_names[i]);
+            printf("%s── %s\n", line, file_names[i]);
         }
     }
 
