@@ -10,7 +10,7 @@
 struct flags flags;
 
 void show_usage(const char *progname) {
-    printf("Usage: %s [OPTION]... DIR\n", progname);
+    printf("Usage: %s [OPTION]... DIR...\n", progname);
     printf("list contents of directories in a tree-like format\n");
     printf("\n");
     printf(" -a, --all      do not ignore entries starting with .\n");
@@ -58,9 +58,11 @@ int main(int argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-    if (do_tree(argv[optind]) < 0) {
-        perror(argv[optind]);
-        exit(EXIT_FAILURE);
+    for (int i = optind; i < argc; i++) {
+        if (do_tree(argv[i]) < 0) {
+            perror(argv[optind]);
+            exit(EXIT_FAILURE);
+        }
     }
 
     return EXIT_SUCCESS;
