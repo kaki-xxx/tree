@@ -7,20 +7,22 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "flags.h"
+#include "error.h"
 
 static int compar(const void *a, const void *b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
-static int isdir(const char *pathname) {
+static error isdir(const char *pathname, bool* res) {
     struct stat buf;
     if (lstat(pathname, &buf) < 0) {
-        return -1;
+        return fail(errno, pathname);
     }
-    return S_ISDIR(buf.st_mode);
+    *res = S_ISDIR(buf.st_mode);
+    return success();
 }
 
-static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_only) {
+static error listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_only) {
     struct dirent *dirp;
     *n = 0;
     while (errno = 0, (dirp = readdir(dp)) != NULL) {
@@ -30,7 +32,12 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_on
         if (!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, "..")) {
             continue;
         }
-        if (directory_only && !isdir(dirp->d_name)) {
+        bool _isdir;
+        error err = isdir(dirp->d_name, &_isdir);
+        if (iserror(err)) {
+            return err;
+        }
+        if (directory_only && !_isdir) {
             continue;
         }
         size_t len = strlen(dirp->d_name);
@@ -44,11 +51,11 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_on
         (*n)++;
     }
     if (errno != 0) {
-        return -1;
+        return fail(errno, "readdir");
     }
     qsort(pathnames, *n, sizeof(char*), compar);
 
-    return 0;
+    return success();
 }
 
 #define MAX_FILES 1024
@@ -61,29 +68,30 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_on
 */
 static bool displine[MAX_FILES];
 
-static int do_tree_internal(char *dirpath, int depth) {
+static error do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
-        return -1;
+        return fail(errno, dirpath);
     }
 
     #define PATH_LEN 1024
     char prevcwd[PATH_LEN];
 
     if (getcwd(prevcwd, PATH_LEN) == NULL) {
-        return -1;
+        return fail(errno, dirpath);
     }
 
     if (chdir(dirpath) < 0) {
-        return -1;
+        return fail(errno, dirpath);
     }
 
     printf("%s\n", dirpath);
 
     char *file_names[MAX_FILES];
     int n = MAX_FILES;
-    if (listdir(dp, file_names, &n, flags.all, flags.directory_only) < 0) {
-        return -1;
+    error err = listdir(dp, file_names, &n, flags.all, flags.directory_only);
+    if (iserror(err)) {
+        return err;
     }
 
     char *line = "├";
@@ -98,13 +106,16 @@ static int do_tree_internal(char *dirpath, int depth) {
             if (displine[d]) printf("│   ");
             else printf("    ");
         } 
-        int dir;
-        if ((dir = isdir(file_names[i])) < 0) {
-            return -1;
-        } else if (dir) {
+        bool _isdir;
+        error err = isdir(file_names[i], &_isdir);
+        if (iserror(err)) {
+            return err;
+        }
+        if (_isdir) {
             printf("%s── ", line);
-            if (do_tree_internal(file_names[i], depth + 1) < 0) {
-                return -1;
+            error err = do_tree_internal(file_names[i], depth + 1);
+            if (iserror(err)) {
+                return err;
             }
         } else {
             printf("%s── %s\n", line, file_names[i]);
@@ -112,15 +123,15 @@ static int do_tree_internal(char *dirpath, int depth) {
     }
 
     if (closedir(dp) < 0) {
-        return -1;
+        return fail(errno, dirpath);
     }
 
     if (chdir(prevcwd)) {
-        return -1;
+        return fail(errno, prevcwd);
     }
-    return 0;
+    return success();
 }
 
-int do_tree(char *dirpath) {
+error do_tree(char *dirpath) {
     return do_tree_internal(dirpath, 0);
 }

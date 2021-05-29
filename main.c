@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include "error.h"
 #include "tree.h"
 #include "config.h"
 #include "flags.h"
@@ -59,9 +60,9 @@ int main(int argc, char *argv[]) {
     }
 
     for (int i = optind; i < argc; i++) {
-        if (do_tree(argv[i]) < 0) {
-            perror(argv[optind]);
-            exit(EXIT_FAILURE);
+        error err = do_tree(argv[i]);
+        if (iserror(err)) {
+            err_exit(err);
         }
     }
 
