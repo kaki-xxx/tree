@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "flags.h"
@@ -52,6 +53,10 @@ static int listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_on
 
 extern struct flags flags;
 
+#define MAX_FILES 1024
+
+static bool islast[MAX_FILES];
+
 static int do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
     if (dp == NULL) {
@@ -62,29 +67,31 @@ static int do_tree_internal(char *dirpath, int depth) {
 
     printf("%s\n", dirpath);
 
-    #define MAX_FILES 1024
     char *file_names[MAX_FILES];
-
     int n = MAX_FILES;
     listdir(dp, file_names, &n, flags.all, flags.directory_only);
 
-    for (int i = 0; i < n - 1; i++) {
-        int d = depth;
-        while (d--) printf("│   ");
+    char *box = "├";
+    for (int i = 0; i < n; i++) {
+        islast[depth + 1] = false;
+        if (i == n - 1) {
+            box = "└";
+            islast[depth + 1] = true;
+        }
+        int d = 0;
+        while (d++ < depth) {
+            if (islast[d]) printf("    ");
+            else printf("│   ");
+        } 
         int dir;
         if ((dir = isdir(file_names[i])) < 0) {
             return -1;
         } else if (dir) {
-            printf("├── ");
+            printf("%s── ", box);
             do_tree_internal(file_names[i], depth + 1);
         } else {
-            printf("├── %s\n", file_names[i]);
+            printf("%s── %s\n", box, file_names[i]);
         }
-    }
-    if (n != 0) {
-        int d = depth;
-        while (d--) printf("│   ");
-        printf("└── %s\n", file_names[n - 1]);
     }
 
     if (closedir(dp) < 0) {
