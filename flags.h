@@ -10,4 +10,4 @@ struct flags {
 
 extern struct flags flags;
 
-#endif
+#endif /* FLAGS_H */

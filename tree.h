@@ -5,4 +5,4 @@
 
 error do_tree(char *dirpath);
 
-#endif
+#endif /* TREE_H */
