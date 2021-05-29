@@ -69,13 +69,17 @@ static int do_tree_internal(char *dirpath, int depth) {
         return -1;
     }
 
-    chdir(dirpath);
+    if (chdir(dirpath) < 0) {
+        return -1;
+    }
 
     printf("%s\n", dirpath);
 
     char *file_names[MAX_FILES];
     int n = MAX_FILES;
-    listdir(dp, file_names, &n, flags.all, flags.directory_only);
+    if (listdir(dp, file_names, &n, flags.all, flags.directory_only) < 0) {
+        return -1;
+    }
 
     char *line = "├";
     for (int i = 0; i < n; i++) {
@@ -94,7 +98,9 @@ static int do_tree_internal(char *dirpath, int depth) {
             return -1;
         } else if (dir) {
             printf("%s── ", line);
-            do_tree_internal(file_names[i], depth + 1);
+            if (do_tree_internal(file_names[i], depth + 1) < 0) {
+                return -1;
+            }
         } else {
             printf("%s── %s\n", line, file_names[i]);
         }
@@ -104,7 +110,9 @@ static int do_tree_internal(char *dirpath, int depth) {
         return -1;
     }
 
-    chdir("..");
+    if (chdir("..")) {
+        return -1;
+    }
     return 0;
 }
 
