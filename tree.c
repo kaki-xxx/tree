@@ -69,6 +69,13 @@ static int do_tree_internal(char *dirpath, int depth) {
         return -1;
     }
 
+    #define PATH_LEN 1024
+    char prevcwd[PATH_LEN];
+
+    if (getcwd(prevcwd, PATH_LEN) == NULL) {
+        return -1;
+    }
+
     if (chdir(dirpath) < 0) {
         return -1;
     }
@@ -110,7 +117,7 @@ static int do_tree_internal(char *dirpath, int depth) {
         return -1;
     }
 
-    if (chdir("..")) {
+    if (chdir(prevcwd)) {
         return -1;
     }
     return 0;
