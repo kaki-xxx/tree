@@ -66,7 +66,7 @@ static error listdir(DIR *dp, char *pathnames[], int *n, int all, int directory_
 │   └── tmp
 みたいになってしまうのを防ぐための変数
 */
-static bool displine[MAX_FILES];
+static bool disp_line[MAX_FILES];
 
 static error do_tree_internal(char *dirpath, int depth) {
     DIR *dp = opendir(dirpath);
@@ -96,14 +96,14 @@ static error do_tree_internal(char *dirpath, int depth) {
 
     char *line = "├";
     for (int i = 0; i < n; i++) {
-        displine[depth + 1] = true;
+        disp_line[depth + 1] = true;
         if (i == n - 1) {
             line = "└";
-            displine[depth + 1] = false;
+            disp_line[depth + 1] = false;
         }
         int d = 0;
         while (d++ < depth) {
-            if (displine[d]) printf("│   ");
+            if (disp_line[d]) printf("│   ");
             else printf("    ");
         } 
         bool _isdir;
